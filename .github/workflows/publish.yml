@@ -3,6 +3,13 @@ name: Publish to PyPI
 on:
   release:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      publish_to_pypi:
+        description: 'Publish to PyPI after TestPyPI'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
@@ -20,11 +27,22 @@ jobs:
         python -m pip install --upgrade pip
         pip install build twine
 
-    - name: Build and publish
+    - name: Build
+      run: |
+        python -m build
+        twine check dist/*
+
+    - name: Publish to TestPyPI
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        python -m build
-        twine check dist/*
+        twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+    - name: Publish to PyPI
+      if: github.event.inputs.publish_to_pypi == 'true'
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
         twine upload dist/*
