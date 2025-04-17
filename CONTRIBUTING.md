@@ -9,7 +9,7 @@ We provide a convenient script to set up your development environment. The scrip
 ### Prerequisites
 
 - Git
-- Python 3.7+
+- Python 3.10+
 - [pyenv](https://github.com/pyenv/pyenv) (recommended for Python version management)
 
 ### Setup Process

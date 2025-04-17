@@ -26,7 +26,7 @@ pip install github-project-manager
 ## Requirements
 
 This library depends on:
-- Python 3.7+
+- Python 3.10+
 - requests >= 2.25.0
 - python-dotenv >= 0.15.0
 
