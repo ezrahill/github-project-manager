@@ -1,11 +1,15 @@
 from setuptools import setup, find_packages
+import re
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+with open("github_project_manager/__init__.py", encoding="utf-8") as f:
+    version = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
+
 setup(
     name="github-project-manager",
-    version="0.1.0",
+    version=version,
     author="Ezra Hill",
     author_email="ezra@ezrahill.co.uk",
     description="A Python module for managing GitHub Projects (v2), issues, labels, and milestones",
