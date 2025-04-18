@@ -54,6 +54,9 @@ from github_project_manager import GitHubProjectManager
 # Initialize the manager
 manager = GitHubProjectManager()
 
+# Initialize with an existing project
+manager = GitHubProjectManager("My Existing Project")
+
 # If you need to change the logging level
 import logging
 logging.getLogger("ghpm").setLevel(logging.DEBUG)
@@ -77,6 +80,15 @@ issue_node_id = manager.create_issue(
     "Issue description",
     add_to_project=True
 )
+
+# Method 3: Create issue with labels
+issue_node_id = manager.create_issue(
+    "my-repo",
+    "Issue Title",
+    "Issue description",
+    add_to_project=True,
+    labels=["bug", "high-priority"]
+)
 ```
 
 ### Automatic Issue Description Updates
@@ -89,8 +101,7 @@ The library will automatically update the description of an existing issue if it
 issue_node_id = manager.create_issue(
     "my-repo",
     "Existing Issue Title",
-    "Updated description",
-    add_to_project=True
+    "Updated description"
 )
 ```
 
