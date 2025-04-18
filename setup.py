@@ -4,7 +4,7 @@ import re
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("github_project_manager/__init__.py", encoding="utf-8") as f:
+with open("github_project_manager/_version.py", encoding="utf-8") as f:
     version = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
 
 setup(

@@ -4,7 +4,7 @@ GitHub Project Manager
 A Python module for managing GitHub Projects (v2), issues, labels, and milestones.
 """
 
-__version__ = "0.1.1"
+from ._version import __version__
 
 import logging
 

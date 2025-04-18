@@ -26,7 +26,7 @@ class GitHubProjectManager:
     - Manage labels and milestones across repositories
     """
 
-    def __init__(self):
+    def __init__(self, project_name: Optional[str] = None):
         self.token = os.getenv("GITHUB_TOKEN")
         self.org = os.getenv("GITHUB_ORG")
         if not self.token or not self.org:
@@ -36,7 +36,11 @@ class GitHubProjectManager:
 
         self.api = GitHubAPIClient(self.token, self.org)
         self.project_id = None
-        self.project_name = None
+        self.project_name = project_name
+
+        if project_name:
+            if not self.project_exists(project_name):
+                raise ValueError(f"Project '{project_name}' does not exist")
 
     def _lower_names(self, items: Iterable) -> set[str]:
         """Helper: set of names (case‑insensitive) for any items with a name attribute."""
@@ -126,7 +130,12 @@ class GitHubProjectManager:
         logger.info(f"Issue #{issue_number} updated in {repo}.")
 
     def create_issue(
-        self, repo: str, title: str, body: str, add_to_project: bool = False
+        self,
+        repo: str,
+        title: str,
+        body: str,
+        add_to_project: bool = False,
+        labels: Optional[list[str]] = None,
     ) -> str:
         """Create a new issue or use existing one."""
         existing_issue = self.issue_exists(repo, title)
@@ -139,6 +148,15 @@ class GitHubProjectManager:
                 )
                 self.update_issue(repo, existing_issue["number"], body)
 
+            # Update labels if provided
+            if labels:
+                self.api.rest_request(
+                    "PUT",
+                    f"/repos/{self.org}/{repo}/issues/{existing_issue['number']}/labels",
+                    {"labels": labels},
+                )
+                logger.info(f"Labels updated for issue '{title}' in {repo}.")
+
             # Add to project if requested
             if add_to_project and self.project_id:
                 self.add_issue_to_project(existing_issue["node_id"])
@@ -146,8 +164,12 @@ class GitHubProjectManager:
             return existing_issue["node_id"]
 
         # Create new issue if not found
+        issue_data = {"title": title, "body": body}
+        if labels:
+            issue_data["labels"] = labels
+
         result = self.api.rest_request(
-            "POST", f"/repos/{self.org}/{repo}/issues", {"title": title, "body": body}
+            "POST", f"/repos/{self.org}/{repo}/issues", issue_data
         )
         logger.info(f"Issue '{title}' {result['node_id']} created in {repo}.")
 

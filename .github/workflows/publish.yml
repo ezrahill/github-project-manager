@@ -5,10 +5,10 @@ on:
     types: [created]
   workflow_dispatch:
     inputs:
-      publish_to_pypi:
-        description: 'Publish to PyPI after TestPyPI'
+      promote_to_pypi:
+        description: 'Promote from TestPyPI to PyPI'
         required: false
-        default: false
+        default: true
         type: boolean
 
 jobs:
@@ -61,6 +61,7 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
+        skip-existing: true  # Skip if the version already exists
 
   upload-to-release:
     name: Upload artifacts to GitHub Release
@@ -86,13 +87,29 @@ jobs:
         gh release upload
         "${{ github.event.release.tag_name }}" dist/**
         --repo "$GITHUB_REPOSITORY"
+        --clobber
+
+  wait-for-approval:
+    name: Wait for approval to publish to PyPI
+    needs:
+    - publish-to-testpypi
+    if: |
+      always() &&
+      needs.publish-to-testpypi.result == 'success' &&
+      (github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.promote_to_pypi == 'true'))
+    runs-on: ubuntu-latest
+    environment:
+      name: approval
+
+    steps:
+    - run: echo "Approval received to publish to PyPI"
 
   publish-to-pypi:
     name: Publish Python 🐍 distribution 📦 to PyPI
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_pypi == 'true'
     needs:
     - build
-    - publish-to-testpypi
+    - wait-for-approval
     runs-on: ubuntu-latest
 
     environment:
